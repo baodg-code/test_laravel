@@ -126,7 +126,7 @@ Authorization: Bearer <token>
 
 If FE can call `login` and store/use the returned token for `me`, then the requirement "FE can login & get token" is complete.
 
-## 7) Day 7 - Product & Category API (Website)
+## 7) Product & Category API (Website)
 
 Public APIs for ReactJS list/detail pages:
 
