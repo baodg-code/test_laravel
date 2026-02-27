@@ -149,6 +149,60 @@ GET http://localhost:8800/api/products/1
 
 Both list APIs use Laravel API Resource + paginator response (`data`, `links`, `meta`) so FE React can render list page and paging controls directly.
 
+## 8) Day 8 - Order & Checkout API
+
+Learning content covered:
+
+- Order flow
+- Transaction
+- Order item
+- Price validation
+
+APIs (require Bearer token):
+
+- `POST /api/orders/checkout` - create order
+- `GET /api/orders` - order history
+- `GET /api/orders/{order}` - order detail
+
+### Create order (checkout)
+
+```http
+POST http://localhost:8800/api/orders/checkout
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+	"items": [
+		{ "product_id": 1, "quantity": 2 },
+		{ "product_id": 3, "quantity": 1 }
+	],
+	"client_total": 12.50
+}
+```
+
+Important backend rules:
+
+- Backend uses DB transaction for checkout.
+- Backend calculates price from `products.price` (not from FE).
+- `client_total` is optional, but if sent and mismatched, API rejects request.
+- Inactive products cannot be ordered.
+
+### Order history
+
+```http
+GET http://localhost:8800/api/orders?per_page=10
+Authorization: Bearer <token>
+```
+
+### Order detail
+
+```http
+GET http://localhost:8800/api/orders/1
+Authorization: Bearer <token>
+```
+
+User can only read their own orders.
+
 ## Why Eloquent is better than raw SQL here
 
 - One config for all containers: Eloquent reads .env, so you do not hardcode host, user, and password.
