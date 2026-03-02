@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthApiController;
 use App\Http\Controllers\Api\AdminUserApiController;
 use App\Http\Controllers\Api\CategoryApiController;
 use App\Http\Controllers\Api\OrderApiController;
+use App\Http\Controllers\Api\ProductExportApiController;
 use App\Http\Controllers\Api\ProductDetailApiController;
 use App\Http\Controllers\Api\ProductApiController;
 use App\Http\Controllers\Api\PublicCategoryController;
@@ -25,6 +26,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders/checkout', [OrderApiController::class, 'store']);
     Route::get('/orders', [OrderApiController::class, 'index']);
     Route::get('/orders/{order}', [OrderApiController::class, 'show']);
+
+    Route::post('/exports/products', [ProductExportApiController::class, 'store']);
+    Route::get('/exports/products/{productExport}', [ProductExportApiController::class, 'show']);
+    Route::get('/exports/products/{productExport}/download', [ProductExportApiController::class, 'download']);
 });
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {

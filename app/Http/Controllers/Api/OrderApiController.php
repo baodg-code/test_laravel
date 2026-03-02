@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderResource;
+use App\Jobs\SendOrderCreatedEmailJob;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
@@ -84,37 +85,60 @@ class OrderApiController extends Controller
             return $order;
         });
 
+        SendOrderCreatedEmailJob::dispatch($order->id);
+
         return response()->json([
             'message' => 'Checkout successful',
             'order' => OrderResource::make($order->load('items')),
         ], 201);
     }
 
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection|JsonResponse
     {
         $data = $request->validate([
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
         ]);
 
         $perPage = $data['per_page'] ?? 10;
+        $isAdmin = (bool) $request->user()->is_admin;
 
-        $orders = Order::query()
-            ->where('user_id', $request->user()->id)
+        $ordersQuery = Order::query()
             ->withCount('items')
-            ->latest('id')
+            ->latest('id');
+
+        if ($isAdmin) {
+            $ordersQuery->with('user:id,name,email');
+        } else {
+            $ordersQuery->where('user_id', $request->user()->id);
+        }
+
+        $orders = $ordersQuery
             ->limit($perPage)
             ->get();
+
+        if ($orders->isEmpty()) {
+            return response()->json([
+                'message' => 'This account has no order.',
+                'data' => [],
+            ]);
+        }
 
         return OrderResource::collection($orders);
     }
 
     public function show(Request $request, Order $order): OrderResource
     {
-        if ($order->user_id !== $request->user()->id) {
+        $isAdmin = (bool) $request->user()->is_admin;
+
+        if (! $isAdmin && $order->user_id !== $request->user()->id) {
             abort(403, 'You are not allowed to view this order.');
         }
 
         $order->load('items');
+
+        if ($isAdmin) {
+            $order->load('user:id,name,email');
+        }
 
         return OrderResource::make($order);
     }

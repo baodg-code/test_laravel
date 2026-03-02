@@ -149,7 +149,7 @@ GET http://localhost:8800/api/products/1
 
 Both list APIs use Laravel API Resource + paginator response (`data`, `links`, `meta`) so FE React can render list page and paging controls directly.
 
-## 8) Day 8 - Order & Checkout API
+## 8) Order & Checkout API
 
 Learning content covered:
 
@@ -202,6 +202,75 @@ Authorization: Bearer <token>
 ```
 
 User can only read their own orders.
+
+## 9) Queue, Job, Email, Export CSV / Excel
+
+Learning content covered:
+
+- Laravel Queue
+- Job
+- Email
+- Export CSV / Excel by Queue
+
+Goals:
+
+- Understand async processing
+- Do not block request while heavy work is running
+
+### Start queue worker
+
+```bash
+docker compose exec laravel.test php artisan queue:work
+```
+
+Keep this command running in a separate terminal.
+
+### Email when creating order
+
+When `POST /api/orders/checkout` succeeds:
+
+- Order is created immediately (HTTP 201)
+- A queue job `SendOrderCreatedEmailJob` is dispatched
+- Worker sends email in background (no blocking checkout request)
+
+Default mailer is `log`, so you can see email content in log output.
+
+### Export product list using queue
+
+Create export request:
+
+```http
+POST http://localhost:8800/api/exports/products
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+	"format": "csv"
+}
+```
+
+`format` supports:
+
+- `csv`
+- `xlsx` (default)
+
+Response is `202 Accepted`, because file generation runs async.
+
+Check export status:
+
+```http
+GET http://localhost:8800/api/exports/products/{export_id}
+Authorization: Bearer <token>
+```
+
+Download file when status is `completed`:
+
+```http
+GET http://localhost:8800/api/exports/products/{export_id}/download
+Authorization: Bearer <token>
+```
+
+Security rule: each user can only access their own export.
 
 ## Why Eloquent is better than raw SQL here
 
