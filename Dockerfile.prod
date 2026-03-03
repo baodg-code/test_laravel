@@ -17,6 +17,8 @@ COPY . .
 
 RUN composer install --optimize-autoloader --no-dev --no-interaction
 
+RUN mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs
+
 RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
