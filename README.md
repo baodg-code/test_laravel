@@ -278,3 +278,46 @@ Security rule: each user can only access their own export.
 - Safer by default: Eloquent uses prepared statements and mass assignment rules.
 - Easy migrations: schema changes are tracked and repeatable in Docker.
 - Cleaner code: CRUD is simple and readable for beginners.
+
+## 10) Production deploy with Docker Compose
+
+This project now includes a production compose file:
+
+- `compose.prod.yaml`
+- `docker/nginx/default.conf`
+
+Services:
+
+- `app`: PHP-FPM Laravel runtime
+- `web`: Nginx reverse proxy
+- `queue`: queue worker (`php artisan queue:work`)
+- `scheduler`: cron-like scheduler loop (`php artisan schedule:run`)
+- `mysql`: MySQL 8.4
+
+### Deploy steps
+
+1. Prepare production `.env` values (`APP_ENV=production`, `APP_DEBUG=false`, real DB/mail credentials).
+2. Build and start stack:
+
+```bash
+docker compose -f compose.prod.yaml up -d --build
+```
+
+3. Run one-time release commands:
+
+```bash
+docker compose -f compose.prod.yaml exec app php artisan key:generate --force
+docker compose -f compose.prod.yaml exec app php artisan migrate --force
+docker compose -f compose.prod.yaml exec app php artisan storage:link
+docker compose -f compose.prod.yaml exec app php artisan config:cache
+docker compose -f compose.prod.yaml exec app php artisan route:cache
+docker compose -f compose.prod.yaml exec app php artisan view:cache
+docker compose -f compose.prod.yaml exec app php artisan l5-swagger:generate --all
+```
+
+4. Verify health:
+
+```bash
+docker compose -f compose.prod.yaml ps
+docker compose -f compose.prod.yaml logs -f web app queue
+```

@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthApiController::class, 'register']);
 Route::post('/login', [AuthApiController::class, 'login']);
-Route::get('/menu-items', [PublicProductController::class, 'index']);
 
 Route::get('/categories', [PublicCategoryController::class, 'index']);
 Route::get('/products', [PublicProductController::class, 'index']);
@@ -39,6 +38,11 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::get('/users', [AdminUserApiController::class, 'index']);
     });
 
-    Route::apiResource('categories', CategoryApiController::class)->except(['index', 'show']);
-    Route::apiResource('products', ProductApiController::class)->except(['index', 'show']);
+    Route::apiResource('categories', CategoryApiController::class)
+        ->names('api.categories')
+        ->except(['index', 'show']);
+
+    Route::apiResource('products', ProductApiController::class)
+        ->names('api.products')
+        ->except(['index', 'show']);
 });
