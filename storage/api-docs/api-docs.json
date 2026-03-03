@@ -7,8 +7,8 @@
     },
     "servers": [
         {
-            "url": "http://localhost:8800",
-            "description": "Local Docker host"
+            "url": "http://my-default-host.com",
+            "description": "Application base URL"
         }
     ],
     "paths": {

@@ -10,8 +10,8 @@ namespace App\OpenApi;
  *         description="API documentation for auth, catalog, orders, exports, and admin management features."
  *     ),
  *     @OA\Server(
- *         url="http://localhost:8800",
- *         description="Local Docker host"
+ *         url=L5_SWAGGER_CONST_HOST,
+ *         description="Application base URL"
  *     )
  * )
  *

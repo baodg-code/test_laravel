@@ -321,3 +321,7 @@ docker compose -f compose.prod.yaml exec app php artisan l5-swagger:generate --a
 docker compose -f compose.prod.yaml ps
 docker compose -f compose.prod.yaml logs -f web app queue
 ```
+
+## 11) Railway deployment
+
+Use the complete checklist in [docs/railway-deploy-checklist.md](docs/railway-deploy-checklist.md).
