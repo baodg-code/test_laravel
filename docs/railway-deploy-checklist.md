@@ -38,6 +38,21 @@ Queue/session/cache:
 - `SESSION_DRIVER=database`
 - `CACHE_STORE=database`
 
+Mail (recommended for Railway):
+
+- `MAIL_MAILER=failover`
+- `RESEND_KEY=<resend-api-key>`
+- `MAIL_FROM_ADDRESS=<verified-sender>`
+- `MAIL_FROM_NAME=Cafe Manager`
+
+If you still use SMTP, set:
+
+- `MAIL_HOST=<smtp-host>`
+- `MAIL_PORT=<smtp-port>`
+- `MAIL_USERNAME=<smtp-username>`
+- `MAIL_PASSWORD=<smtp-password>`
+- `MAIL_SCHEME=smtp` or `MAIL_SCHEME=smtps`
+
 Optional Swagger host override:
 
 - `L5_SWAGGER_CONST_HOST=https://<your-railway-domain>`
