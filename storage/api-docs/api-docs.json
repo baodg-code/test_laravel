@@ -7,7 +7,7 @@
     },
     "servers": [
         {
-            "url": "http://my-default-host.com",
+            "url": "https://testlaravel-production-021c.up.railway.app",
             "description": "Application base URL"
         }
     ],
