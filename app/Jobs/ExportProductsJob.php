@@ -48,11 +48,11 @@ class ExportProductsJob implements ShouldQueue
                 : 'Csv';
 
             $fileName = 'products_export_'.$export->id.'_'.now()->format('YmdHis').'.'.$format;
-            $filePath = 'private/exports/'.$fileName;
+            $filePath = 'exports/'.$fileName;
 
-            $absoluteDirectory = storage_path('app/private/private/exports');
+            $absoluteDirectory = storage_path('app/private/exports');
             File::ensureDirectoryExists($absoluteDirectory, 0755, true);
-            @chmod(storage_path('app/private/private'), 0755);
+            @chmod(storage_path('app/private'), 0755);
             @chmod($absoluteDirectory, 0755);
 
             Excel::store(new ProductsExport($products), $filePath, 'local', $writerType);

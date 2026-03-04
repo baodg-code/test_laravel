@@ -8,6 +8,7 @@ use App\Jobs\ExportProductsJob;
 use App\Models\ProductExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductExportApiController extends Controller
 {
@@ -48,25 +49,34 @@ class ProductExportApiController extends Controller
             ], 422);
         }
 
-        $relativePath = ltrim($productExport->file_path, '/');
-        $absolutePath = storage_path('app/private/'.$relativePath);
+        $storedPath = ltrim((string) $productExport->file_path, '/');
+        $normalizedPath = preg_replace('/^private\//', '', $storedPath) ?: '';
+        $disk = Storage::disk('local');
 
-        if (! is_file($absolutePath) && $productExport->file_name) {
-            $canonicalRelativePath = 'private/exports/'.$productExport->file_name;
-            $canonicalAbsolutePath = storage_path('app/private/'.$canonicalRelativePath);
+        $candidatePaths = array_filter(array_unique([
+            $normalizedPath,
+            $storedPath,
+            $productExport->file_name ? 'exports/'.$productExport->file_name : null,
+            $productExport->file_name ? 'private/exports/'.$productExport->file_name : null,
+        ]));
 
-            if (is_file($canonicalAbsolutePath)) {
-                $productExport->update(['file_path' => $canonicalRelativePath]);
-                $productExport->refresh();
-                $relativePath = $canonicalRelativePath;
-                $absolutePath = $canonicalAbsolutePath;
+        $resolvedPath = null;
+
+        foreach ($candidatePaths as $candidatePath) {
+            if ($disk->exists($candidatePath)) {
+                $resolvedPath = $candidatePath;
+                break;
             }
         }
 
-        if (! is_file($absolutePath)) {
+        if (! $resolvedPath) {
             return response()->json([
                 'message' => 'Export file not found.',
             ], 404);
+        }
+
+        if ($productExport->file_path !== $resolvedPath) {
+            $productExport->update(['file_path' => $resolvedPath]);
         }
 
         $extension = strtolower(pathinfo($productExport->file_name ?? '', PATHINFO_EXTENSION));
@@ -80,7 +90,7 @@ class ProductExportApiController extends Controller
             : 'text/csv';
 
         return response()->download(
-            $absolutePath,
+            $disk->path($resolvedPath),
             $productExport->file_name ?? ('products_export.'.$extension),
             ['Content-Type' => $contentType]
         );
