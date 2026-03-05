@@ -115,7 +115,11 @@ class ProductApiController extends Controller
             'category_id' => ['required', 'exists:categories,id'],
             'price' => ['required', 'numeric', 'min:0'],
             'description' => ['nullable', 'string', 'max:255'],
-            'is_active' => ['nullable', 'boolean'],
+            'is_active' => ['nullable', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! in_array($value, [true, false, 0, 1, '0', '1', 'true', 'false'], true)) {
+                    $fail('The is active field must be true or false.');
+                }
+            }],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ]);
 
