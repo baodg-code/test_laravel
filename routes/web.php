@@ -11,6 +11,22 @@ Route::get('/', function () {
     return redirect()->route('products.index');
 });
 
+Route::get('/up', function () {
+    return response('OK', 200)->header('Content-Type', 'text/plain');
+});
+
+Route::get('/docs/api-docs.json', function () {
+    $path = storage_path('api-docs/api-docs.json');
+
+    if (! file_exists($path)) {
+        abort(404);
+    }
+
+    return response()->file($path, [
+        'Content-Type' => 'application/json',
+    ]);
+});
+
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.perform');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

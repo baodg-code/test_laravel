@@ -10,7 +10,7 @@ namespace App\OpenApi;
  *         description="API documentation for auth, catalog, orders, exports, and admin management features."
  *     ),
  *     @OA\Server(
- *         url=L5_SWAGGER_CONST_HOST,
+ *         url="/",
  *         description="Application base URL"
  *     )
  * )

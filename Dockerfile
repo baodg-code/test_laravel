@@ -22,4 +22,4 @@ RUN mkdir -p storage/framework/cache/data storage/framework/sessions storage/fra
 RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-CMD php artisan migrate --force && php artisan l5-swagger:generate && php artisan serve --host=0.0.0.0 --port=${PORT:-80}
+CMD php artisan optimize:clear && php artisan migrate --force && php artisan l5-swagger:generate && php artisan serve --host=0.0.0.0 --port=${PORT:-80}

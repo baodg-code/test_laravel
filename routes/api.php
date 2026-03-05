@@ -11,38 +11,40 @@ use App\Http\Controllers\Api\PublicCategoryController;
 use App\Http\Controllers\Api\PublicProductController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/register', [AuthApiController::class, 'register']);
-Route::post('/login', [AuthApiController::class, 'login']);
+Route::middleware(\App\Http\Middleware\ForceJsonResponse::class)->group(function () {
+    Route::post('/register', [AuthApiController::class, 'register']);
+    Route::post('/login', [AuthApiController::class, 'login']);
 
-Route::get('/categories', [PublicCategoryController::class, 'index']);
-Route::get('/products', [PublicProductController::class, 'index']);
-Route::get('/product-detail/{product}', [ProductDetailApiController::class, 'show']);
+    Route::get('/categories', [PublicCategoryController::class, 'index']);
+    Route::get('/products', [PublicProductController::class, 'index']);
+    Route::get('/product-detail/{product}', [ProductDetailApiController::class, 'show']);
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthApiController::class, 'logout']);
-    Route::get('/me', [AuthApiController::class, 'me']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [AuthApiController::class, 'logout']);
+        Route::get('/me', [AuthApiController::class, 'me']);
 
-    Route::post('/orders/checkout', [OrderApiController::class, 'store']);
-    Route::get('/orders', [OrderApiController::class, 'index']);
-    Route::get('/orders/{order}', [OrderApiController::class, 'show']);
+        Route::post('/orders/checkout', [OrderApiController::class, 'store']);
+        Route::get('/orders', [OrderApiController::class, 'index']);
+        Route::get('/orders/{order}', [OrderApiController::class, 'show']);
 
-    Route::post('/exports/products', [ProductExportApiController::class, 'store']);
-    Route::get('/exports/products/{productExport}', [ProductExportApiController::class, 'show']);
-    Route::get('/exports/products/{productExport}/download', [ProductExportApiController::class, 'download']);
-});
-
-Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-    Route::prefix('admin')->group(function () {
-        Route::get('/categories', [CategoryApiController::class, 'index']);
-        Route::get('/products', [ProductApiController::class, 'index']);
-        Route::get('/users', [AdminUserApiController::class, 'index']);
+        Route::post('/exports/products', [ProductExportApiController::class, 'store']);
+        Route::get('/exports/products/{productExport}', [ProductExportApiController::class, 'show']);
+        Route::get('/exports/products/{productExport}/download', [ProductExportApiController::class, 'download']);
     });
 
-    Route::apiResource('categories', CategoryApiController::class)
-        ->names('api.categories')
-        ->except(['index', 'show']);
+    Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+        Route::prefix('admin')->group(function () {
+            Route::get('/categories', [CategoryApiController::class, 'index']);
+            Route::get('/products', [ProductApiController::class, 'index']);
+            Route::get('/users', [AdminUserApiController::class, 'index']);
+        });
 
-    Route::apiResource('products', ProductApiController::class)
-        ->names('api.products')
-        ->except(['index', 'show']);
+        Route::apiResource('categories', CategoryApiController::class)
+            ->names('api.categories')
+            ->except(['index', 'show']);
+
+        Route::apiResource('products', ProductApiController::class)
+            ->names('api.products')
+            ->except(['index', 'show']);
+    });
 });
