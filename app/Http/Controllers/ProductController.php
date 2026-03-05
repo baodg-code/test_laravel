@@ -45,9 +45,10 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $data = $this->validatedData($request);
+        $productImageDisk = $this->productImageDisk();
 
         if ($request->hasFile('image')) {
-            $data['image_path'] = $request->file('image')->store('products', 'public');
+            $data['image_path'] = $request->file('image')->store('products', $productImageDisk);
         }
 
         Product::create($data);
@@ -65,13 +66,14 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $data = $this->validatedData($request);
+        $productImageDisk = $this->productImageDisk();
 
         if ($request->hasFile('image')) {
             if ($product->image_path) {
-                Storage::disk('public')->delete($product->image_path);
+                Storage::disk($productImageDisk)->delete($product->image_path);
             }
 
-            $data['image_path'] = $request->file('image')->store('products', 'public');
+            $data['image_path'] = $request->file('image')->store('products', $productImageDisk);
         }
 
         $product->update($data);
@@ -81,8 +83,10 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
+        $productImageDisk = $this->productImageDisk();
+
         if ($product->image_path) {
-            Storage::disk('public')->delete($product->image_path);
+            Storage::disk($productImageDisk)->delete($product->image_path);
         }
 
         $product->delete();
@@ -104,5 +108,10 @@ class ProductController extends Controller
         $data['is_active'] = $request->boolean('is_active');
 
         return $data;
+    }
+
+    private function productImageDisk(): string
+    {
+        return (string) config('filesystems.product_images_disk', 'public');
     }
 }

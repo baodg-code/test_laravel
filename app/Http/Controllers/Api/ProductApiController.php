@@ -56,9 +56,10 @@ class ProductApiController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $this->validatePayload($request);
+        $productImageDisk = $this->productImageDisk();
 
         if ($request->hasFile('image')) {
-            $data['image_path'] = $request->file('image')->store('products', 'public');
+            $data['image_path'] = $request->file('image')->store('products', $productImageDisk);
         }
 
         $product = Product::create($data)->load('category:id,name');
@@ -76,13 +77,14 @@ class ProductApiController extends Controller
     public function update(Request $request, Product $product): JsonResponse
     {
         $data = $this->validatePayload($request);
+        $productImageDisk = $this->productImageDisk();
 
         if ($request->hasFile('image')) {
             if ($product->image_path) {
-                Storage::disk('public')->delete($product->image_path);
+                Storage::disk($productImageDisk)->delete($product->image_path);
             }
 
-            $data['image_path'] = $request->file('image')->store('products', 'public');
+            $data['image_path'] = $request->file('image')->store('products', $productImageDisk);
         }
 
         $product->update($data);
@@ -93,8 +95,10 @@ class ProductApiController extends Controller
 
     public function destroy(Product $product): JsonResponse
     {
+        $productImageDisk = $this->productImageDisk();
+
         if ($product->image_path) {
-            Storage::disk('public')->delete($product->image_path);
+            Storage::disk($productImageDisk)->delete($product->image_path);
         }
 
         $product->delete();
@@ -122,6 +126,10 @@ class ProductApiController extends Controller
 
     private function transformProduct(Product $product): array
     {
+        $productImageDisk = $this->productImageDisk();
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk($productImageDisk);
+
         return [
             'id' => $product->id,
             'name' => $product->name,
@@ -131,9 +139,14 @@ class ProductApiController extends Controller
             'category_id' => $product->category_id,
             'category' => $product->category,
             'image_path' => $product->image_path,
-            'image_url' => $product->image_path ? Storage::url($product->image_path) : null,
+            'image_url' => $product->image_path ? $disk->url($product->image_path) : null,
             'created_at' => $product->created_at,
             'updated_at' => $product->updated_at,
         ];
+    }
+
+    private function productImageDisk(): string
+    {
+        return (string) config('filesystems.product_images_disk', 'public');
     }
 }

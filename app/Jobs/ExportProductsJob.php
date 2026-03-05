@@ -41,6 +41,8 @@ class ExportProductsJob implements ShouldQueue
                 ->orderBy('id')
                 ->get();
 
+            $exportDisk = (string) config('filesystems.exports_disk', 'local');
+
             $format = $export->format === 'xlsx' ? 'xlsx' : 'csv';
 
             $writerType = $format === 'xlsx'
@@ -50,17 +52,21 @@ class ExportProductsJob implements ShouldQueue
             $fileName = 'products_export_'.$export->id.'_'.now()->format('YmdHis').'.'.$format;
             $filePath = 'exports/'.$fileName;
 
-            $absoluteDirectory = storage_path('app/private/exports');
-            File::ensureDirectoryExists($absoluteDirectory, 0755, true);
-            @chmod(storage_path('app/private'), 0755);
-            @chmod($absoluteDirectory, 0755);
+            if ($exportDisk === 'local') {
+                $absoluteDirectory = storage_path('app/private/exports');
+                File::ensureDirectoryExists($absoluteDirectory, 0755, true);
+                @chmod(storage_path('app/private'), 0755);
+                @chmod($absoluteDirectory, 0755);
+            }
 
-            Excel::store(new ProductsExport($products), $filePath, 'local', $writerType);
+            Excel::store(new ProductsExport($products), $filePath, $exportDisk, $writerType);
 
-            $absoluteFilePath = storage_path('app/private/'.$filePath);
+            if ($exportDisk === 'local') {
+                $absoluteFilePath = storage_path('app/private/'.$filePath);
 
-            if (is_file($absoluteFilePath)) {
-                @chmod($absoluteFilePath, 0644);
+                if (is_file($absoluteFilePath)) {
+                    @chmod($absoluteFilePath, 0644);
+                }
             }
 
             $export->update([

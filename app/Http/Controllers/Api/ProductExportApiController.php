@@ -49,15 +49,16 @@ class ProductExportApiController extends Controller
             ], 422);
         }
 
+        $exportDisk = (string) config('filesystems.exports_disk', 'local');
         $storedPath = ltrim((string) $productExport->file_path, '/');
         $normalizedPath = preg_replace('/^private\//', '', $storedPath) ?: '';
-        $disk = Storage::disk('local');
+        $disk = Storage::disk($exportDisk);
 
         $candidatePaths = array_filter(array_unique([
             $normalizedPath,
             $storedPath,
             $productExport->file_name ? 'exports/'.$productExport->file_name : null,
-            $productExport->file_name ? 'private/exports/'.$productExport->file_name : null,
+            $exportDisk === 'local' && $productExport->file_name ? 'private/exports/'.$productExport->file_name : null,
         ]));
 
         $resolvedPath = null;
@@ -89,11 +90,30 @@ class ProductExportApiController extends Controller
             ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             : 'text/csv';
 
-        return response()->download(
-            $disk->path($resolvedPath),
-            $productExport->file_name ?? ('products_export.'.$extension),
-            ['Content-Type' => $contentType]
-        );
+        $downloadName = $productExport->file_name ?? ('products_export.'.$extension);
+
+        if ($exportDisk === 'local') {
+            return response()->download(
+                $disk->path($resolvedPath),
+                $downloadName,
+                ['Content-Type' => $contentType]
+            );
+        }
+
+        $stream = $disk->readStream($resolvedPath);
+
+        if ($stream === false) {
+            return response()->json([
+                'message' => 'Export file not found.',
+            ], 404);
+        }
+
+        return response()->streamDownload(function () use ($stream): void {
+            fpassthru($stream);
+            fclose($stream);
+        }, $downloadName, [
+            'Content-Type' => $contentType,
+        ]);
     }
 
     private function ensureOwnedByUser(Request $request, ProductExport $productExport): void

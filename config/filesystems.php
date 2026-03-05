@@ -2,6 +2,9 @@
 
 return [
 
+    'exports_disk' => env('EXPORT_FILESYSTEM_DISK', env('FILESYSTEM_DISK', 'local')),
+    'product_images_disk' => env('PRODUCT_IMAGES_DISK', 'public'),
+
     /*
     |--------------------------------------------------------------------------
     | Default Filesystem Disk
@@ -45,6 +48,13 @@ return [
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
+        ],
+
+        'cloudinary' => [
+            'driver' => 'cloudinary',
+            'url' => env('CLOUDINARY_URL'),
+            'secure' => (bool) env('CLOUDINARY_SECURE', true),
+            'prefix' => env('CLOUDINARY_PREFIX', ''),
         ],
 
         's3' => [
